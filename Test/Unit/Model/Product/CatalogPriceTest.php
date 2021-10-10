@@ -48,9 +48,6 @@ class CatalogPriceTest extends TestCase
      */
     protected $priceModelMock;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->storeManagerMock = $this->getMockForAbstractClass(StoreManagerInterface::class);
@@ -72,10 +69,7 @@ class CatalogPriceTest extends TestCase
         );
     }
 
-    /**
-     * @return void
-     */
-    public function testGetCatalogPriceWithCurrentStore(): void
+    public function testGetCatalogPriceWithCurrentStore()
     {
         $this->coreRegistryMock->expects($this->once())->method('unregister')->with('rule_data');
         $this->productMock->expects($this->once())->method('getStoreId')->willReturn('store_id');
@@ -105,10 +99,7 @@ class CatalogPriceTest extends TestCase
         $this->assertEquals(15, $this->catalogPrice->getCatalogPrice($this->productMock));
     }
 
-    /**
-     * @return void
-     */
-    public function testGetCatalogPriceWithCustomStore(): void
+    public function testGetCatalogPriceWithCustomStore()
     {
         $storeMock = $this->getMockForAbstractClass(StoreInterface::class);
         $storeMock->expects($this->once())->method('getId')->willReturn('store_id');
@@ -139,20 +130,14 @@ class CatalogPriceTest extends TestCase
             15
         );
 
-        $this->storeManagerMock
-            ->method('getStore')
-            ->willReturn($currentStoreMock);
-        $this->storeManagerMock
-            ->method('setCurrentStore')
-            ->withConsecutive(['store_id'], ['current_store_id']);
+        $this->storeManagerMock->expects($this->at(0))->method('getStore')->willReturn($currentStoreMock);
+        $this->storeManagerMock->expects($this->at(1))->method('setCurrentStore')->with('store_id');
+        $this->storeManagerMock->expects($this->at(2))->method('setCurrentStore')->with('current_store_id');
 
         $this->assertEquals(15, $this->catalogPrice->getCatalogPrice($this->productMock, $storeMock, true));
     }
 
-    /**
-     * @return void
-     */
-    public function testGetCatalogRegularPrice(): void
+    public function testGetCatalogRegularPrice()
     {
         $this->assertNull($this->catalogPrice->getCatalogRegularPrice($this->productMock));
     }

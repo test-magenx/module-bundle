@@ -50,19 +50,13 @@ class ConfiguredPrice extends CatalogPrice\FinalPrice implements ConfiguredPrice
     private $configuredPriceSelection;
 
     /**
-     * @var DiscountCalculator
-     */
-    private $discountCalculator;
-
-    /**
      * @param Product $saleableItem
      * @param float $quantity
      * @param BundleCalculatorInterface $calculator
      * @param PriceCurrencyInterface $priceCurrency
-     * @param ItemInterface|null $item
+     * @param ItemInterface $item
      * @param JsonSerializer|null $serializer
      * @param ConfiguredPriceSelection|null $configuredPriceSelection
-     * @param DiscountCalculator|null $discountCalculator
      */
     public function __construct(
         Product $saleableItem,
@@ -71,8 +65,7 @@ class ConfiguredPrice extends CatalogPrice\FinalPrice implements ConfiguredPrice
         PriceCurrencyInterface $priceCurrency,
         ItemInterface $item = null,
         JsonSerializer $serializer = null,
-        ConfiguredPriceSelection $configuredPriceSelection = null,
-        DiscountCalculator $discountCalculator = null
+        ConfiguredPriceSelection $configuredPriceSelection = null
     ) {
         $this->item = $item;
         $this->serializer = $serializer ?: \Magento\Framework\App\ObjectManager::getInstance()
@@ -80,14 +73,10 @@ class ConfiguredPrice extends CatalogPrice\FinalPrice implements ConfiguredPrice
         $this->configuredPriceSelection = $configuredPriceSelection
             ?: \Magento\Framework\App\ObjectManager::getInstance()
                 ->get(ConfiguredPriceSelection::class);
-        $this->discountCalculator = $discountCalculator
-            ?: \Magento\Framework\App\ObjectManager::getInstance()->get(DiscountCalculator::class);
         parent::__construct($saleableItem, $quantity, $calculator, $priceCurrency);
     }
 
     /**
-     * Set item to the model
-     *
      * @param ItemInterface $item
      * @return $this
      */
@@ -155,12 +144,12 @@ class ConfiguredPrice extends CatalogPrice\FinalPrice implements ConfiguredPrice
      */
     public function getValue()
     {
-        if ($this->item && $this->item->getProduct()->getId()) {
+        if ($this->item) {
             $configuredOptionsAmount = $this->getConfiguredAmount()->getBaseAmount();
-            return parent::getValue() + $this->discountCalculator->calculateDiscount(
-                $this->item->getProduct(),
-                $configuredOptionsAmount
-            );
+            return parent::getValue() +
+                $this->priceInfo
+                    ->getPrice(BundleDiscountPrice::PRICE_CODE)
+                    ->calculateDiscount($configuredOptionsAmount);
         }
         return parent::getValue();
     }
