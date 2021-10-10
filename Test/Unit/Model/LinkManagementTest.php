@@ -31,7 +31,6 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -141,11 +140,6 @@ class LinkManagementTest extends TestCase
     private $linkField = 'product_id';
 
     /**
-     * @var WebsiteInterface|MockObject
-     */
-    private $websiteMock;
-
-    /**
      * @inheritDoc
      */
     protected function setUp(): void
@@ -209,9 +203,6 @@ class LinkManagementTest extends TestCase
         $this->dataObjectHelperMock = $this->getMockBuilder(DataObjectHelper::class)
             ->disableOriginalConstructor()
             ->getMock();
-
-        $this->websiteMock = $this->getMockForAbstractClass( WebsiteInterface::class);
-
         $this->model = $helper->getObject(
             LinkManagement::class,
             [
@@ -549,7 +540,7 @@ class LinkManagementTest extends TestCase
         $productLink->method('getOptionId')->willReturn(1);
         $productLink->method('getSelectionId')->willReturn(1);
 
-        $this->metadataMock->expects($this->exactly(2))->method('getLinkField')->willReturn($this->linkField);
+        $this->metadataMock->expects($this->once())->method('getLinkField')->willReturn($this->linkField);
         $productMock = $this->createMock(Product::class);
         $productMock->expects($this->once())
             ->method('getTypeId')
@@ -626,7 +617,7 @@ class LinkManagementTest extends TestCase
         $productLink->method('getOptionId')->willReturn(1);
         $productLink->method('getSelectionId')->willReturn(1);
 
-        $this->metadataMock->expects($this->exactly(2))->method('getLinkField')->willReturn($this->linkField);
+        $this->metadataMock->expects($this->once())->method('getLinkField')->willReturn($this->linkField);
         $productMock = $this->createMock(Product::class);
         $productMock->expects($this->once())->method('getTypeId')->willReturn(Type::TYPE_BUNDLE);
         $productMock
@@ -749,7 +740,7 @@ class LinkManagementTest extends TestCase
                     'setSelectionPriceType',
                     'setSelectionPriceValue',
                     'setSelectionCanChangeQty',
-                    'setIsDefault',
+                    'setIsDefault'
                 ]
             )
             ->onlyMethods(['save', 'getId', 'load'])
@@ -787,18 +778,13 @@ class LinkManagementTest extends TestCase
         $productLink->method('getSku')->willReturn('linked_product_sku');
         $productLink->method('getId')->willReturn($id);
         $productLink->method('getSelectionId')->willReturn(1);
-
         $bundleProductSku = 'bundleProductSku';
-        $this->metadataMock->expects($this->once())->method('getLinkField')->willReturn($this->linkField);
+
         $productMock = $this->createMock(Product::class);
         $productMock->expects($this->once())
             ->method('getTypeId')
             ->willReturn(Type::TYPE_BUNDLE);
         $productMock->method('getId')
-            ->willReturn($parentProductId);
-        $productMock
-            ->method('getData')
-            ->with($this->linkField)
             ->willReturn($parentProductId);
 
         $linkedProductMock = $this->createMock(Product::class);

@@ -52,12 +52,9 @@ class BundleSelectionFactory
         $quantity,
         array $arguments = []
     ) {
-        $quantity = $quantity ? (float)$quantity : 1.;
-        $selection->setQty($quantity);
-
         $arguments['bundleProduct'] = $bundleProduct;
         $arguments['saleableItem'] = $selection;
-        $arguments['quantity'] = $quantity;
+        $arguments['quantity'] = $quantity ? (float)$quantity : 1.;
 
         return $this->objectManager->create(self::SELECTION_CLASS_DEFAULT, $arguments);
     }

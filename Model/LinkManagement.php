@@ -19,9 +19,9 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\Api\DataObjectHelper;
-use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -173,11 +173,12 @@ class LinkManagement implements ProductLinkManagementInterface
                 )
             );
         }
-        $selectionModel = $this->mapProductLinkToBundleSelectionModel(
+        $linkField = $this->metadataPool->getMetadata(ProductInterface::class)->getLinkField();
+        $selectionModel = $this->mapProductLinkToSelectionModel(
             $selectionModel,
             $linkedProduct,
-            $product,
-            (int)$linkProductModel->getId()
+            $linkProductModel->getId(),
+            $product->getData($linkField)
         );
 
         try {
@@ -201,7 +202,6 @@ class LinkManagement implements ProductLinkManagementInterface
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
-     * @deprecated use mapProductLinkToBundleSelectionModel
      */
     protected function mapProductLinkToSelectionModel(
         Selection $selectionModel,
@@ -235,55 +235,6 @@ class LinkManagement implements ProductLinkManagementInterface
         if ($productLink->getIsDefault() !== null) {
             $selectionModel->setIsDefault($productLink->getIsDefault());
         }
-
-        return $selectionModel;
-    }
-
-    /**
-     * Fill selection model with product link data.
-     *
-     * @param Selection $selectionModel
-     * @param LinkInterface $productLink
-     * @param ProductInterface $parentProduct
-     * @param int $linkedProductId
-     * @param string $linkField
-     * @return Selection
-     * @throws NoSuchEntityException
-     */
-    private function mapProductLinkToBundleSelectionModel(
-        Selection $selectionModel,
-        LinkInterface $productLink,
-        ProductInterface $parentProduct,
-        int $linkedProductId
-    ): Selection {
-        $linkField = $this->metadataPool->getMetadata(ProductInterface::class)->getLinkField();
-        $selectionModel->setProductId($linkedProductId);
-        $selectionModel->setParentProductId($parentProduct->getData($linkField));
-        if ($productLink->getSelectionId() !== null) {
-            $selectionModel->setSelectionId($productLink->getSelectionId());
-        }
-        if ($productLink->getOptionId() !== null) {
-            $selectionModel->setOptionId($productLink->getOptionId());
-        }
-        if ($productLink->getPosition() !== null) {
-            $selectionModel->setPosition($productLink->getPosition());
-        }
-        if ($productLink->getQty() !== null) {
-            $selectionModel->setSelectionQty($productLink->getQty());
-        }
-        if ($productLink->getPriceType() !== null) {
-            $selectionModel->setSelectionPriceType($productLink->getPriceType());
-        }
-        if ($productLink->getPrice() !== null) {
-            $selectionModel->setSelectionPriceValue($productLink->getPrice());
-        }
-        if ($productLink->getCanChangeQuantity() !== null) {
-            $selectionModel->setSelectionCanChangeQty($productLink->getCanChangeQuantity());
-        }
-        if ($productLink->getIsDefault() !== null) {
-            $selectionModel->setIsDefault($productLink->getIsDefault());
-        }
-        $selectionModel->setWebsiteId((int)$this->storeManager->getStore($parentProduct->getStoreId())->getWebsiteId());
 
         return $selectionModel;
     }
@@ -351,13 +302,12 @@ class LinkManagement implements ProductLinkManagementInterface
         }
 
         $selectionModel = $this->bundleSelection->create();
-        $selectionModel = $this->mapProductLinkToBundleSelectionModel(
+        $selectionModel = $this->mapProductLinkToSelectionModel(
             $selectionModel,
             $linkedProduct,
-            $product,
-            (int)$linkProductModel->getEntityId()
+            $linkProductModel->getEntityId(),
+            $product->getData($linkField)
         );
-
         $selectionModel->setOptionId($optionId);
 
         try {
@@ -367,7 +317,7 @@ class LinkManagement implements ProductLinkManagementInterface
             throw new CouldNotSaveException(__('Could not save child: "%1"', $e->getMessage()), $e);
         }
 
-        return (int)$selectionModel->getId();
+        return $selectionModel->getId();
     }
 
     /**

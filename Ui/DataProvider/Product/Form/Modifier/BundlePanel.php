@@ -252,19 +252,16 @@ class BundlePanel extends AbstractModifier
      */
     private function modifyShipmentType(array $meta)
     {
-        $actualPath = $this->arrayManager->findPath(
-            static::CODE_SHIPMENT_TYPE,
-            $meta,
-            null,
-            'children'
-        );
-
         $meta = $this->arrayManager->merge(
-            $actualPath . static::META_CONFIG_PATH,
+            $this->arrayManager->findPath(
+                static::CODE_SHIPMENT_TYPE,
+                $meta,
+                null,
+                'children'
+            ) . static::META_CONFIG_PATH,
             $meta,
             [
-                'dataScope' => stripos($actualPath, self::CODE_BUNDLE_DATA) === 0
-                    ? 'data.product.shipment_type' : 'shipment_type',
+                'dataScope' => 'data.product.shipment_type',
                 'validation' => [
                     'required-entry' => false
                 ]
